@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quiz Foot</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,sans-serif;background:#0b3d1e;color:#fff;min-height:100vh;display:flex;justify-content:center;align-items:center;padding:16px}
+.card{background:#14532d;border-radius:16px;padding:24px;width:100%;max-width:520px;box-shadow:0 8px 24px #0006;text-align:center}
+h1{margin-top:0;font-size:1.6rem}
+button{background:#22c55e;color:#052e16;border:0;border-radius:10px;padding:12px 16px;font-size:1rem;font-weight:600;cursor:pointer;margin:4px;width:100%}
+button:hover{background:#4ade80}
+button:disabled{opacity:.6;cursor:default}
+button.sec{background:#334155;color:#fff}
+button.ok{background:#16a34a;color:#fff}
+button.ko{background:#dc2626;color:#fff}
+input,select{width:100%;padding:10px;border-radius:8px;border:0;margin:4px 0;font-size:1rem}
+.row{display:flex;gap:8px}
+.row>*{flex:1}
+.score{font-size:1.05rem;margin:8px 0}
+.msg{min-height:26px;font-weight:600;margin:8px 0}
+</style>
+</head>
+<body>
+<div class="card" id="app"></div>
+<script>
+// [question, options séparées par |, index de la bonne réponse, niveau (1 facile, 2 moyen, 3 difficile)]
+const Q=[
+["Combien de joueurs composent une équipe de football sur le terrain ?","9|10|11|12",2,1],
+["Quel pays a remporté la Coupe du monde 2018 ?","France|Croatie|Belgique|Angleterre",0,1],
+["De quel pays est originaire Lionel Messi ?","Brésil|Argentine|Espagne|Uruguay",1,1],
+["Combien de temps dure un match de football (temps réglementaire) ?","60 min|80 min|90 min|100 min",2,1],
+["Quelle couleur de carton entraîne l'expulsion ?","Jaune|Rouge|Bleu|Vert",1,1],
+["Quel club a remporté le plus de Ligues des champions ?","Real Madrid|Barcelone|Milan|Bayern",0,1],
+["Quelle compétition se joue tous les quatre ans ?","Coupe du monde|Ligue des champions|Coupe de France|Supercoupe",0,1],
+["Quel pays a gagné l'Euro 2016 ?","France|Portugal|Espagne|Allemagne",1,1],
+["Comment s'appelle le trophée de la Ligue des champions ?","Coupe d'Europe|Trophée des champions|Coupe aux grandes oreilles|Ballon d'or",2,1],
+["Qui a remporté le Ballon d'or 2018 ?","Cristiano Ronaldo|Luka Modrić|Lionel Messi|Neymar",1,1],
+["Quelle est la couleur principale du maillot de l'équipe de France ?","Bleu|Rouge|Blanc|Noir",0,1],
+["Quel pays a remporté la Coupe du monde 2014 ?","Argentine|Allemagne|Brésil|Espagne",1,1],
+["Quel club est surnommé « Les Merengues » ?","Real Madrid|Barcelone|Juventus|Arsenal",0,1],
+["Combien de points rapporte une victoire en championnat (système classique) ?","1|2|3|4",2,1],
+["Dans quel stade joue le PSG ?","Vélodrome|Parc des Princes|Geoffroy-Guichard|Groupama",1,1],
+["Qui est le meilleur buteur de l'histoire de la Coupe du monde ?","Pelé|Ronaldo|Miroslav Klose|Just Fontaine",2,1],
+["Quel pays a remporté la première Coupe du monde en 1930 ?","Uruguay|Brésil|Italie|Argentine",0,1],
+["Quel gardien a été champion du monde avec la France en 2018 ?","Steve Mandanda|Hugo Lloris|Mike Maignan|Alphonse Areola",1,1],
+["Combien de temps dure la mi-temps ?","10 min|15 min|20 min|45 min",1,1],
+["Quel pays est surnommé « La Roja » ?","Espagne|Portugal|Chili|Mexique",0,1],
+["Dans quel pays se trouve le Bayern Munich ?","Autriche|Allemagne|Suisse|Pays-Bas",1,1],
+["Quel joueur est surnommé « O Rei » ?","Pelé|Maradona|Zidane|Cruyff",0,1],
+["Quel club est surnommé « Les Gunners » ?","Chelsea|Arsenal|Tottenham|Liverpool",1,1],
+["Quel pays a remporté la Coupe du monde 2010 ?","Espagne|Pays-Bas|Allemagne|Uruguay",0,1],
+["Quel club est basé à Turin ?","Milan|Juventus|Lazio|Roma",1,1],
+["Quel est le nom complet du club phocéen ?","Olympique de Marseille|Olympique Lyonnais|AS Monaco|Stade Rennais",0,1],
+["Combien de Coupes du monde la France a-t-elle remportées ?","1|2|3|4",1,1],
+["Quel pays a gagné la Coupe du monde 2022 ?","France|Argentine|Croatie|Maroc",1,1],
+["Quel club est surnommé « Les Canaris » ?","Nantes|Lille|Lens|Nice",0,1],
+["Quels pays organisent conjointement la Coupe du monde 2026 ?","Etats-Unis, Mexique, Canada|Brésil seul|Europe entière|Japon et Corée",0,1],
+["Quelle partie du corps est interdite à un joueur de champ ?","Les mains|La tête|Les épaules|Le torse",0,1],
+["Quel club a gagné la Ligue des champions 2021 ?","Chelsea|Manchester City|Liverpool|PSG",0,1],
+["Quel joueur a marqué « la main de Dieu » ?","Pelé|Maradona|Zidane|Messi",1,1],
+["Quel est le surnom de l'équipe nationale d'Italie ?","Azzurri|Bleus|Lions|Oranje",0,1],
+
+["En quelle année la France a-t-elle remporté sa première Coupe du monde ?","1958|1966|1998|2002",2,2],
+["Quel joueur a remporté le plus de Ballons d'or ?","Messi|Ronaldo|Cruyff|Platini",0,2],
+["Quel pays a remporté la Coupe du monde 1994 ?","Brésil|Italie|Argentine|Allemagne",0,2],
+["Quel club a remporté la première Ligue des champions en 1956 ?","Benfica|Real Madrid|Milan|Inter",1,2],
+["Quel pays a remporté la CAN 2023 ?","Sénégal|Maroc|Côte d'Ivoire|Nigeria",2,2],
+["Combien d'adversaires (gardien compris) doivent se trouver devant un attaquant pour qu'il ne soit pas hors-jeu ?","1|2|3|4",1,2],
+["Qui a marqué le but en or de la France en finale de l'Euro 2000 ?","Zidane|Trezeguet|Henry|Pirès",1,2],
+["Qui était sélectionneur de la France en 2018 ?","Aimé Jacquet|Didier Deschamps|Raymond Domenech|Laurent Blanc",1,2],
+["Quel pays a remporté la Coupe du monde 1982 ?","Italie|Allemagne|France|Brésil",0,2],
+["Quel club a remporté la Ligue Europa 2019 ?","Arsenal|Chelsea|Séville|Benfica",1,2],
+["Quel joueur est surnommé « El Pibe de Oro » ?","Pelé|Maradona|Ronaldinho|Kaká",1,2],
+["Combien de buts Just Fontaine a-t-il marqués en Coupe du monde 1958 ?","10|11|13|15",2,2],
+["Quel est le nom du stade du Real Madrid ?","Camp Nou|Bernabéu|Metropolitano|San Siro",1,2],
+["Quel club a surpris tout le monde en remportant la Premier League 2016 ?","Leicester|Tottenham|Chelsea|Everton",0,2],
+["Quel pays a organisé la Coupe du monde 2010 ?","Afrique du Sud|Nigeria|Égypte|Maroc",0,2],
+["Quel pays a remporté l'Euro 2004 ?","Portugal|Grèce|Espagne|République tchèque",1,2],
+["Combien de remplacements sont autorisés par équipe dans un match standard ?","3|4|5|6",2,2],
+["Qui était capitaine de la France lors de la Coupe du monde 2006 ?","Zidane|Deschamps|Thuram|Henry",0,2],
+["Quel club est surnommé « Les Verts » ?","Saint-Étienne|Nantes|Lens|Nice",0,2],
+["Qui a été élu meilleur joueur de la Coupe du monde 2014 ?","Messi|Neymar|Müller|James",0,2],
+["Quel pays a accueilli la Coupe du monde 2014 ?","Brésil|Argentine|Russie|Qatar",0,2],
+["Quel club italien a remporté le plus de scudetti ?","Juventus|Milan|Inter|Naples",0,2],
+["Comment s'appelle le championnat espagnol ?","Serie A|Liga|Bundesliga|Premier League",1,2],
+["Combien de Coupes du monde l'Allemagne a-t-elle remportées ?","2|3|4|5",2,2],
+["Qui a marqué le but vainqueur de l'Allemagne en finale 2014 ?","Müller|Götze|Klose|Kroos",1,2],
+["Qui a été meilleur buteur du Mondial 2022 ?","Messi|Mbappé|Giroud|Benzema",1,2],
+["Quelle compétition oppose les clubs champions d'Amérique du Sud ?","Copa Sudamericana|Copa Libertadores|Copa America|Coupe des champions",1,2],
+["Quel pays a remporté la Copa América 2021 ?","Brésil|Argentine|Chili|Uruguay",1,2],
+["Quel club a gagné la Ligue des champions 2023 ?","Manchester City|Inter|Real Madrid|Bayern",0,2],
+["Qui détient le record de buts en Ligue des champions ?","Messi|Ronaldo|Lewandowski|Benzema",1,2],
+["Quel pays a remporté la première Coupe du monde féminine en 1991 ?","Etats-Unis|Norvège|Allemagne|Suède",0,2],
+["Quelle est la distance réglementaire entre les poteaux de but (en mètres) ?","6|7,32|8|9",1,2],
+["Quel est le nom de la Fédération française de football ?","FFF|FFP|FFR|FFT",0,2],
+
+["Qui détient le record de buts en une seule Coupe du monde ?","Just Fontaine|Miroslav Klose|Gerd Müller|Pelé",0,3],
+["Quel club a remporté cinq Coupes d'Europe des clubs champions consécutives ?","Real Madrid|Milan|Bayern|Liverpool",0,3],
+["Qui a marqué deux buts en finale de la Coupe du monde 2002 pour le Brésil ?","Ronaldo|Rivaldo|Ronaldinho|Kaká",0,3],
+["En quelle année a été créé le Championnat d'Europe des nations (l'Euro) ?","1950|1960|1970|1980",1,3],
+["Quel pays africain a été le premier à atteindre les quarts de finale d'une Coupe du monde ?","Maroc|Cameroun|Sénégal|Nigeria",1,3],
+["Quel joueur est surnommé « Le Kaiser » ?","Beckenbauer|Müller|Klinsmann|Matthäus",0,3],
+["Combien de Ballons d'or Cristiano Ronaldo a-t-il remportés ?","3|4|5|6",2,3],
+["Qui était l'entraîneur du Brésil lors de la Coupe du monde 1970 ?","Zagallo|Pelé|Telê Santana|Parreira",0,3],
+["En quelle année le Brésil a-t-il remporté sa première Coupe du monde ?","1950|1954|1958|1962",2,3],
+["Quel est le plus jeune buteur de l'histoire de la Coupe du monde ?","Pelé|Maradona|Messi|Mbappé",0,3],
+["Quel pays a remporté la Coupe du monde 1966 ?","Allemagne|Angleterre|Brésil|France",1,3],
+["Quel défenseur détient le record de sélections en équipe de France ?","Thuram|Desailly|Lizarazu|Blanc",0,3],
+["Quel joueur est le plus capé de l'histoire (sélections) ?","Messi|Cristiano Ronaldo|Ali Daei|Bader Al-Mutawa",1,3],
+["Quel est le premier Africain à avoir remporté le Ballon d'or ?","George Weah|Didier Drogba|Samuel Eto'o|Yaya Touré",0,3],
+["Où s'est jouée la finale de la Coupe du monde 1994 ?","Los Angeles|Pasadena|Rio de Janeiro|New York",1,3],
+["Qui a marqué le but en or de l'Allemagne en finale de l'Euro 1996 ?","Bierhoff|Klinsmann|Matthäus|Kuntz",0,3],
+["Quel est le score de la finale de la Coupe du monde 1998 ?","2-0|3-0|1-0|4-0",1,3],
+["Qui a dirigé la France lors de la Coupe du monde 1998 ?","Jacquet|Platini|Domenech|Michel",0,3],
+["Combien de Coupes d'Europe des clubs champions le Bayern a-t-il remportées ?","5|6|7|4",1,3],
+["Qui a marqué l'égalisation de Chelsea en finale de Ligue des champions 2012 ?","Drogba|Lampard|Terry|Torres",0,3],
+["Pour quel club Pelé a-t-il joué la majeure partie de sa carrière ?","Santos|Flamengo|Corinthians|Palmeiras",0,3],
+["Quelle est la hauteur réglementaire de la barre transversale (en mètres) ?","2|2,44|2,5|3",1,3],
+["Quel pays a remporté la CAN 2004 ?","Tunisie|Cameroun|Égypte|Sénégal",0,3],
+["Combien de matchs la France a-t-elle joué lors du Mondial 2018 ?","5|6|7|8",2,3],
+["Quel club anglais a remporté la Ligue des champions 2008 ?","Manchester United|Chelsea|Liverpool|Arsenal",0,3],
+["Quel est le stade du FC Barcelone ?","Camp Nou|Mestalla|Anoeta|San Mamés",0,3],
+["Quel joueur a terminé meilleur buteur du Mondial 2006 ?","Klose|Ronaldo|Zidane|Gilardino",0,3],
+["En quelle année a eu lieu la première Coupe du monde ?","1928|1930|1934|1938",1,3],
+["Quel pays a remporté la Coupe du monde 1974 ?","Pays-Bas|Allemagne de l'Ouest|Brésil|Italie",1,3],
+["Qui a inscrit les deux buts de la France en finale de l'Euro 1984 ?","Platini|Giresse|Tigana|Fernandez",0,3],
+["Quel pays a remporté la première Ligue des nations en 2019 ?","Portugal|Pays-Bas|Italie|Espagne",0,3],
+["Combien de temps dure une prolongation ?","15 min|20 min|30 min|45 min",2,3],
+["Quelle est la nationalité de Pep Guardiola ?","Espagnole|Italienne|Portugaise|Argentine",0,3]
+];
+
+const $=id=>document.getElementById(id);
+const app=$('app');
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+let state={}, pen={};
+
+/* ---------- MENU ---------- */
+function menu(){
+  app.innerHTML=`<h1>⚽ Quiz Foot</h1>
+  <p>Nombre de joueurs</p>
+  <select id="n" onchange="setN()">${[1,2,3,4].map(n=>`<option value="${n}" ${n==2?'selected':''}>${n}</option>`).join('')}</select>
+  <div id="names"></div>
+  <p>Niveau</p>
+  <select id="lvl"><option value="1">Facile</option><option value="2">Moyen</option><option value="3">Difficile</option><option value="0" selected>Mixte</option></select>
+  <p>Nombre de questions</p>
+  <select id="nq"><option value="10">10</option><option value="20" selected>20</option><option value="30">30</option></select>
+  <button onclick="startQuiz()">▶ Lancer le quiz</button>
+  <button class="sec" onclick="penaltyMenu()">🥅 Jeu de penalty</button>`;
+  setN();
+}
+function setN(){
+  const n=+$('n').value;
+  $('names').innerHTML=Array.from({length:n},(_,i)=>`<input id="p${i}" value="Joueur ${i+1}">`).join('');
+}
+
+/* ---------- QUIZ ---------- */
+function startQuiz(){
+  const n=+$('n').value;
+  const lvl=+$('lvl').value;
+  const pool=Q.filter(q=>lvl==0||q[3]==lvl);
+  const nq=Math.min(+$('nq').value,pool.length);
+  state={
+    players:Array.from({length:n},(_,i)=>$('p'+i).value.trim()||'Joueur '+(i+1)),
+    scores:new Array(n).fill(0),
+    idx:0,
+    qs:shuffle([...pool]).slice(0,nq).map(([q,o,a])=>{
+      const opts=o.split('|');
+      return{q,opts:shuffle([...opts]),correct:opts[a]};
+    })
+  };
+  showQ();
+}
+function showQ(){
+  if(state.idx>=state.qs.length) return results();
+  const cur=state.qs[state.idx];
+  const p=state.idx%state.players.length;
+  app.innerHTML=`<div class="score">Tour de <b>${state.players[p]}</b> — question ${state.idx+1}/${state.qs.length}</div>
+  <h2 style="font-size:1.15rem">${cur.q}</h2>
+  <div id="opts">${cur.opts.map((o,i)=>`<button onclick="answer(${i})">${o}</button>`).join('')}</div>
+  <div class="msg" id="msg"></div>
+  <div class="score">${state.players.map((n,i)=>`${n} : ${state.scores[i]}`).join(' | ')}</div>
+  <button class="sec" onclick="menu()">Quitter</button>`;
+}
+function answer(i){
+  const cur=state.qs[state.idx];
+  const p=state.idx%state.players.length;
+  const btns=[...document.querySelectorAll('#opts button')];
+  btns.forEach(b=>b.disabled=true);
+  const ok=cur.opts[i]===cur.correct;
+  if(ok) state.scores[p]++;
+  btns[i].classList.add(ok?'ok':'ko');
+  btns.forEach(b=>{if(b.textContent===cur.correct) b.classList.add('ok')});
+  $('msg').textContent=ok?'Bonne réponse ! +1 point':'Raté ! La bonne réponse : '+cur.correct;
+  const nb=document.createElement('button');
+  nb.textContent='Suivant';
+  nb.onclick=()=>{state.idx++;showQ()};
+  $('msg').after(nb);
+}
+function results(){
+  const max=Math.max(...state.scores);
+  const winners=state.players.filter((_,i)=>state.scores[i]==max);
+  app.innerHTML=`<h1>Résultats</h1>
+  ${state.players.map((n,i)=>`<div class="score">${n} : ${state.scores[i]} / ${state.qs.length}</div>`).join('')}
+  <p class="msg">🏆 ${winners.length>1?'Égalité : '+winners.join(' et '):'Vainqueur : '+winners[0]}</p>
+  <button onclick="menu()">Rejouer</button>`;
+}
+
+/* ---------- PENALTY ---------- */
+function penaltyMenu(){
+  app.innerHTML=`<h1>🥅 Penalty</h1>
+  <p>Nombre de joueurs</p>
+  <select id="pn"><option value="1">1 (contre le gardien)</option><option value="2" selected>2</option><option value="3">3</option><option value="4">4</option></select>
+  <p>Tirs par joueur</p>
+  <select id="pt"><option value="3">3</option><option value="5" selected>5</option></select>
+  <p>Prénoms séparés par des virgules (optionnel)</p>
+  <input id="pnm" placeholder="Ex : Léa, Tom, Sam, Max">
+  <button onclick="startPen()">▶ Commencer</button>
+  <button class="sec" onclick="menu()">Retour</button>`;
+}
+function startPen(){
+  const n=+$('pn').value;
+  const shots=+$('pt').value;
+  const names=$('pnm').value.split(',').map(s=>s.trim()).filter(Boolean);
+  pen={
+    names:Array.from({length:n},(_,i)=>names[i]||'Joueur '+(i+1)),
+    scores:new Array(n).fill(0),
+    count:0,
+    total:n*shots
+  };
+  penTurn();
+}
+function penTurn(){
+  if(pen.count>=pen.total) return penEnd();
+  const p=pen.count%pen.names.length;
+  app.innerHTML=`<h1>🥅 Penalty</h1>
+  <div class="score">Tir de <b>${pen.names[p]}</b> (tir ${pen.count+1}/${pen.total})</div>
+  <p>Où tires-tu ?</p>
+  <div class="row"><button onclick="shoot(0)">↖ Gauche</button><button onclick="shoot(1)">⬆ Centre</button><button onclick="shoot(2)">↗ Droite</button></div>
+  <div class="msg" id="msg"></div>
+  <div class="score">${pen.names.map((n,i)=>`${n} : ${pen.scores[i]}`).join(' | ')}</div>`;
+}
+function shoot(z){
+  const p=pen.count%pen.names.length;
+  const zones=['à gauche','au centre','à droite'];
+  const k=Math.floor(Math.random()*3);
+  const goal=z!==k;
+  if(goal) pen.scores[p]++;
+  document.querySelectorAll('button').forEach(b=>b.disabled=true);
+  $('msg').innerHTML=`${goal?'⚽ BUT !':'🧤 Arrêt du gardien !'} Le gardien a plongé ${zones[k]}.`;
+  const nb=document.createElement('button');
+  nb.textContent='Tir suivant';
+  nb.onclick=()=>{pen.count++;penTurn()};
+  $('msg').after(nb);
+}
+function penEnd(){
+  const max=Math.max(...pen.scores);
+  const w=pen.names.filter((_,i)=>pen.scores[i]==max);
+  app.innerHTML=`<h1>Fin du penalty</h1>
+  ${pen.names.map((n,i)=>`<div class="score">${n} : ${pen.scores[i]} but(s)</div>`).join('')}
+  <p class="msg">🏆 ${w.length>1?'Égalité : '+w.join(' et '):w[0]+' gagne !'}</p>
+  <button onclick="penaltyMenu()">Rejouer</button>
+  <button class="sec" onclick="menu()">Menu</button>`;
+}
+
+menu();
+</script>
+</body>
+</html>
